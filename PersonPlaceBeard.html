@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Place Beard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome CDN for social media icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Custom Tailwind Colors */
+        :root {
+            --color-primary-background-start: #1a1a1a; /* Slightly lighter black */
+            --color-primary-background-end: #0a0a0a;   /* Darker black */
+            --color-secondary-main: #FFD700; /* Gold Yellow */
+            --color-secondary-darker: #CCAC00; /* Darker Gold Yellow for ombre effect */
+            --color-accent: #FFFFFF; /* White */
+        }
+
+        /* Apply custom colors using new variable names */
+        /* Note: bg-primary-background is now handled by the gradient class on body */
+        .text-primary-background { color: var(--color-primary-background-start); } /* Using start color for text that needs to contrast with gradients */
+        .bg-secondary-main { background-color: var(--color-secondary-main); }
+        .text-secondary-main { color: var(--color-secondary-main); }
+        .bg-accent { background-color: var(--color-accent); }
+        .text-accent { color: var(--color-accent); }
+        .border-secondary-main { border-color: var(--color-secondary-main); }
+        .border-accent { border-color: var(--color-accent); }
+
+        /* Apply custom colors to Tailwind's gradient classes */
+        /* Adjusted rgba for the new secondary color #FFD700 (255, 215, 0) */
+        .from-secondary-main { --tw-gradient-from: var(--color-secondary-main); --tw-gradient-to: rgba(255, 215, 0, 0); }
+        .to-secondary-darker { --tw-gradient-to: var(--color-secondary-darker); }
+
+        /* New gradient for the primary background */
+        .bg-gradient-black {
+            background: linear-gradient(to bottom, var(--color-primary-background-start), var(--color-primary-background-end));
+        }
+
+        /* Custom font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Drawer specific styles */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 100%; /* Full width on mobile */
+            max-width: 500px; /* Max width on larger screens */
+            height: 100%;
+            transform: translateX(100%); /* Start off-screen to the right */
+            transition: transform 0.4s ease-in-out;
+            z-index: 50; /* Above main content, below overlay */
+            overflow-y: auto; /* Enable scrolling for drawer content */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        .drawer.is-open {
+            transform: translateX(0); /* Slide in */
+        }
+
+        /* Overlay specific styles */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            z-index: 40; /* Below drawer */
+            pointer-events: none; /* Allow clicks through when hidden */
+        }
+
+        .overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto; /* Enable clicks when visible */
+        }
+
+        /* Loading spinner styles */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid var(--color-secondary-main);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-black text-white min-h-screen flex flex-col">
+    <!-- Navigation Bar -->
+    <nav class="bg-gradient-to-l from-secondary-main to-secondary-darker p-4 shadow-lg">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <h1 class="text-2xl font-bold text-primary-background mb-4 md:mb-0">My Portfolio</h1>
+            <ul class="flex space-x-4">
+                <li><a href="#" class="nav-link p-2 rounded-lg hover:bg-accent hover:text-black transition-colors duration-300" data-drawer="general-drawer">Bio</a></li>
+                <li><a href="#" class="nav-link p-2 rounded-lg hover:bg-accent hover:text-black transition-colors duration-300" data-drawer="barbecue-drawer">Barbecue</a></li>
+                <li><a href="#" class="nav-link p-2 rounded-lg hover:bg-accent hover:text-black transition-colors duration-300" data-drawer="career-drawer">Career Project</a></li>
+                <li><a href="#" class="nav-link p-2 rounded-lg hover:bg-accent hover:text-black transition-colors duration-300" data-drawer="local-sports-drawer">Local Sports & Eats</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content Area - Now features the image and title -->
+    <main class="flex-grow container mx-auto p-6 md:p-8 flex items-center justify-center">
+        <div class="text-center">
+            <h2 class="text-4xl font-bold text-accent mb-4">Adam Place</h2>
+            <img src="https://photos.google.com/album/AF1QipOdLeLQ4LxRSFpNanLLcOrYmvdnNyVYZHVNKaGg/photo/AF1QipOG-YqgKbsY7zDG8IM-tJvRuQeEJY6wkTKwC1Mj" alt="Man with beard carrying a log on his shoulder" class="max-w-full h-auto rounded-lg shadow-lg mx-auto block border-4 border-secondary-main">
+            <p class="mt-4 text-xl text-gray-300">Welcome to my portfolio!</p>
+            <p class="mt-2 text-gray-400">Click a navigation link to open a page drawer.</p>
+        </div>
+    </main>
+
+    <!-- Overlay for when drawer is open -->
+    <div id="overlay" class="overlay hidden" aria-hidden="true"></div>
+
+    <!-- Drawer Containers -->
+    <div id="general-drawer" class="drawer bg-gray-800 shadow-2xl p-6 md:p-8 border-l-4 border-secondary-main hidden" aria-hidden="true">
+        <div class="flex justify-end mb-4">
+            <button class="close-drawer-btn text-accent hover:text-black text-3xl font-bold p-2 rounded-full hover:bg-accent transition-colors duration-300" aria-label="Close General Information Drawer">&times;</button>
+        </div>
+        <h2 class="text-3xl font-bold text-secondary-main mb-4">General Information</h2>
+        <p class="text-gray-300 leading-relaxed">
+            Welcome to my personal website! This is a place where I share a bit about myself, my interests, and my professional journey. I'm passionate about learning new things, whether it's mastering a new skill in the kitchen or diving deep into a challenging coding project.
+        </p>
+        <p class="mt-4 text-gray-300 leading-relaxed">
+            I believe in continuous growth and the power of curiosity. Feel free to explore the different sections to learn more about my hobbies and my work.
+        </p>
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold text-accent mb-2">My Philosophy</h3>
+            <ul class="list-disc list-inside text-gray-300">
+                <li>Embrace challenges as opportunities for growth.</li>
+                <li>Always be open to new ideas and perspectives.</li>
+                <li>Strive for excellence in everything you do.</li>
+                <li>Maintain a healthy work-life balance.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="barbecue-drawer" class="drawer bg-gray-800 shadow-2xl p-6 md:p-8 border-l-4 border-secondary-main hidden" aria-hidden="true">
+        <div class="flex justify-end mb-4">
+            <button class="close-drawer-btn text-accent hover:text-black text-3xl font-bold p-2 rounded-full hover:bg-accent transition-colors duration-300" aria-label="Close Barbecue Drawer">&times;</button>
+        </div>
+        <h2 class="text-3xl font-bold text-secondary-main mb-4">The Art of Barbecue</h2>
+        <p class="text-gray-300 leading-relaxed">
+            Barbecue isn't just cooking; it's a passion, a science, and an art form. There's nothing quite like the aroma of slow-smoked meats, the perfect bark, and the tender, juicy results. My journey into barbecue began years ago, experimenting with different smokers, wood types, and rub recipes.
+        </p>
+        <p class="mt-4 text-gray-300 leading-relaxed">
+            From classic Texas brisket to Carolina pulled pork, I enjoy exploring regional variations and perfecting techniques. It's a fantastic way to bring people together and share delicious food.
+        </p>
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold text-accent mb-2">Favorite BBQ Tips:</h3>
+            <ul class="list-disc list-inside text-gray-300">
+                <li>Low and slow is the way to go for tender results.</li>
+                <li>Don't fear the stall – it's part of the process!</li>
+                <li>Experiment with different wood (oak, hickory, cherry) for unique flavors.</li>
+                <li>A good meat thermometer is your best friend.</li>
+            </ul>
+        </div>
+         <div class="mt-6 flex justify-center">
+            <img src="https://photos.google.com/album/AF1QipOdLeLQ4LxRSFpNanLLcOrYmvdnNyVYZHVNKaGg/photo/AF1QipOByBmQ3pB91zSJaSvTsMdGcrQCjw9QbkqO4_JA" alt="Smoked Brisket" class="rounded-lg shadow-md border-2 border-accent">
+        </div>
+
+        <!-- Gemini API Integration: BBQ Recipe Generator -->
+        <div class="mt-8 pt-6 border-t-2 border-secondary-main">
+            <h3 class="text-2xl font-bold text-secondary-main mb-4">✨ BBQ Recipe Generator ✨</h3>
+            <div class="mb-4">
+                <label for="meatType" class="block text-gray-300 text-sm font-bold mb-2">Type of Meat:</label>
+                <input type="text" id="meatType" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600" placeholder="e.g., Pork Ribs, Beef Brisket">
+            </div>
+            <div class="mb-6">
+                <label for="flavorProfile" class="block text-gray-300 text-sm font-bold mb-2">Desired Flavor Profile:</label>
+                <input type="text" id="flavorProfile" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600" placeholder="e.g., Smoky & Sweet, Spicy & Tangy">
+            </div>
+            <button id="generateRecipeBtn" class="bg-accent hover:bg-opacity-80 text-black font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline transition-colors duration-300 flex items-center justify-center">
+                <span id="buttonText">Generate Recipe</span>
+                <div id="loadingSpinner" class="spinner ml-2 hidden"></div>
+            </button>
+
+            <div id="recipeOutput" class="mt-6 p-4 bg-gray-700 rounded-lg border border-accent text-gray-200 whitespace-pre-wrap hidden">
+                <!-- Generated recipe will appear here -->
+            </div>
+            <div id="errorMessage" class="mt-4 p-3 bg-red-800 text-white rounded-lg hidden">
+                Oops! Something went wrong.
+            </div>
+        </div>
+    </div>
+
+    <div id="career-drawer" class="drawer bg-gray-800 shadow-2xl p-6 md:p-8 border-l-4 border-secondary-main hidden" aria-hidden="true">
+        <div class="flex justify-end mb-4">
+            <button class="close-drawer-btn text-accent hover:text-black text-3xl font-bold p-2 rounded-full hover:bg-accent transition-colors duration-300" aria-label="Close Career Project Drawer">&times;</button>
+        </div>
+        <h2 class="text-3xl font-bold text-secondary-main mb-4">Career Projects & Aspirations</h2>
+        <p class="text-gray-300 leading-relaxed">
+            In my professional life, I am a versatile and analytical problem-solver with over 10 years of experience in designing and implementing custom software solutions across SaaS platforms. I excel at translating complex customer requirements into scalable architecture through APIs, workflow logic, and technical documentation. My experience includes owning API and workflow integration layers, leading technical discovery sessions, building custom YAML workflows, and managing software migrations. I am now actively looking for a <span class="font-bold text-accent">Solutions Engineer role</span> where I can continue to leverage my expertise in solution design, SaaS platform integration, and technical leadership to drive impactful initiatives and contribute to innovative solutions.
+        </p>
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold text-accent mb-2">Key Accomplishments:</h3>
+            <ul class="list-disc list-inside text-gray-300">
+                <li><span class="font-bold">Scalable Integration Models:</span> Created scalable integration models adopted across 20+ enterprise clients.</li>
+                <li><span class="font-bold">Reduced Manual Configuration:</span> Reduced manual configuration effort by implementing reusable workflow libraries.</li>
+                <li><span class="font-bold">API Documentation & Guides:</span> Delivered API documentation and integration guides adopted by engineering and sales.</li>
+                <li><span class="font-bold">ETL Routines:</span> Developed SQL-based importers and data load pipelines to support ETL routines for complex billing and financial reporting.</li>
+                <li><span class="font-bold">Reporting Logic:</span> Led a team of Data Analysts and created scalable reporting logic via SQL, SSIS, and Crystal Reports.</li>
+            </ul>
+        </div>
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold text-accent mb-2">Technical Proficiencies:</h3>
+            <ul class="list-disc list-inside text-gray-300">
+                <li><span class="font-bold">Platforms:</span> ServiceNow, Workday, Jira, Zendesk, GitHub</li>
+                <li><span class="font-bold">Languages & Tools:</span> SQL, Ruby, YAML, JSON, Postman</li>
+                <li><span class="font-bold">Design & Mapping:</span> Figma, Miro</li>
+                <li><span class="font-bold">Data & Reporting:</span> SSIS, Crystal Reports, Excel</li>
+                <li><span class="font-bold">Integrations:</span> REST APIs, LDAP, SSO, MDM, FedEx/UPS APIs</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- New Drawer: Local Sports & Eats -->
+    <div id="local-sports-drawer" class="drawer bg-gray-800 shadow-2xl p-6 md:p-8 border-l-4 border-secondary-main hidden" aria-hidden="true">
+        <div class="flex justify-end mb-4">
+            <button class="close-drawer-btn text-accent hover:text-black text-3xl font-bold p-2 rounded-full hover:bg-accent transition-colors duration-300" aria-label="Close Local Sports and Eats Drawer">&times;</button>
+        </div>
+        <h2 class="text-3xl font-bold text-secondary-main mb-4">Local Sports & Eats: Columbus, OH</h2>
+        <p class="text-gray-300 leading-relaxed mb-6">
+            Columbus, Ohio, is a vibrant city with a passionate sports culture and a burgeoning food scene. From professional soccer to collegiate football, there's always something exciting happening!
+        </p>
+
+        <div class="mb-8">
+            <h3 class="text-2xl font-semibold text-accent mb-3">Columbus Crew (MLS Soccer)</h3>
+            <p class="text-gray-300 leading-relaxed">
+                The Columbus Crew is one of the founding clubs of Major League Soccer (MLS) and boasts a dedicated fanbase. Known for their passionate supporters and electric atmosphere at Lower.com Field, the Crew has brought multiple MLS Cup championships to the city. Their black and gold colors are iconic in the Columbus sports landscape.
+            </p>
+            <div class="mt-4 flex justify-center">
+                <img src="https://photos.google.com/album/AF1QipOdLeLQ4LxRSFpNanLLcOrYmvdnNyVYZHVNKaGg/photo/AF1QipNnj1vhVeVIlaaBcfRM6GZtUKEFPjYR_4rpj-Ch" alt="Columbus Crew Logo" class="rounded-lg shadow-md border-2 border-accent">
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-2xl font-semibold text-accent mb-3">Columbus Blue Jackets (NHL Hockey)</h3>
+            <p class="text-gray-300 leading-relaxed">
+                As Columbus's National Hockey League (NHL) team, the Blue Jackets bring fast-paced action and intense competition to the ice at Nationwide Arena. The team has built a strong following with their gritty play and commitment to the community. Game nights in downtown Columbus are always buzzing with energy.
+            </p>
+            <div class="mt-4 flex justify-center">
+                <img src="https://photos.google.com/album/AF1QipOdLeLQ4LxRSFpNanLLcOrYmvdnNyVYZHVNKaGg/photo/AF1QipPGwUniiR6LAXMk4obibKPtgcPXVwIBaFOAOlvu" alt="Columbus Blue Jackets Logo" class="rounded-lg shadow-md border-2 border-accent">
+            </div>
+        </div>
+
+        <div class="mb-8">
+            <h3 class="text-2xl font-semibold text-accent mb-3">Ohio State Buckeyes (NCAA Football)</h3>
+            <p class="text-gray-300 leading-relaxed">
+                No discussion of Columbus sports is complete without mentioning the Ohio State Buckeyes football team. With a storied history, national championships, and a massive fanbase, game days at Ohio Stadium (affectionately known as "The Shoe") are an unparalleled experience. The Buckeyes are a central part of Columbus identity and pride.
+            </p>
+            <div class="mt-4 flex justify-center">
+                <img src="https://photos.google.com/album/AF1QipOdLeLQ4LxRSFpNanLLcOrYmvdnNyVYZHVNKaGg/photo/AF1QipNbLGrifWHDT2ZoW7TTKpHs6T7Gstlf7n0F_jq0" alt="Ohio State Buckeyes Logo" class="rounded-lg shadow-md border-2 border-accent">
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t-2 border-secondary-main">
+            <h3 class="text-2xl font-bold text-secondary-main mb-4">Local Eats to Try!</h3>
+            <p class="text-gray-300 leading-relaxed">
+                After a big game, or just for a great meal, Columbus offers fantastic dining options. Some local favorites include:
+            </p>
+            <ul class="list-disc list-inside text-gray-300 mt-4">
+                <li><span class="font-bold text-accent">North Market:</span> A vibrant public market with diverse food vendors.</li>
+                <li><span class="font-bold text-accent">Short North Arts District:</span> Home to numerous upscale restaurants and trendy eateries.</li>
+                <li><span class="font-bold text-accent">German Village:</span> Historic neighborhood with authentic German cuisine and charming cafes.</li>
+                <li><span class="font-bold text-accent">Thurman Cafe:</span> Famous for its massive burgers in the Brewery District.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-l from-secondary-main to-secondary-darker p-4 text-center text-primary-background mt-auto shadow-inner">
+        <p>&copy; 2025 My Portfolio. All rights reserved.</p>
+        <div class="flex justify-center space-x-6 mt-4">
+            <a href="https://www.linkedin.com/in/yourprofile" target="_blank" rel="noopener noreferrer" class="text-white hover:text-accent transition-colors duration-300">
+                <i class="fab fa-linkedin-in fa-2x"></i>
+            </a>
+            <a href="https://www.facebook.com/yourprofile" target="_blank" rel="noopener noreferrer" class="text-white hover:text-accent transition-colors duration-300">
+                <i class="fab fa-facebook-f fa-2x"></i>
+            </a>
+            <a href="https://www.instagram.com/yourprofile" target="_blank" rel="noopener noreferrer" class="text-white hover:text-accent transition-colors duration-300">
+                <i class="fab fa-instagram fa-2x"></i>
+            </a>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const overlay = document.getElementById('overlay');
+            const closeDrawerBtns = document.querySelectorAll('.close-drawer-btn');
+
+            let activeDrawer = null; // To keep track of the currently open drawer
+
+            // Elements for the BBQ Recipe Generator
+            const meatTypeInput = document.getElementById('meatType');
+            const flavorProfileInput = document.getElementById('flavorProfile');
+            const generateRecipeBtn = document.getElementById('generateRecipeBtn');
+            const recipeOutput = document.getElementById('recipeOutput');
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const buttonText = document.getElementById('buttonText');
+            const errorMessage = document.getElementById('errorMessage');
+
+            /**
+             * Opens a specified drawer.
+             * @param {string} drawerId - The ID of the drawer to open (e.g., 'general-drawer').
+             */
+            const openDrawer = (drawerId) => {
+                const targetDrawer = document.getElementById(drawerId);
+                if (targetDrawer) {
+                    // If there's an active drawer, close it first
+                    if (activeDrawer && activeDrawer !== targetDrawer) {
+                        activeDrawer.classList.remove('is-open');
+                        activeDrawer.setAttribute('aria-hidden', 'true');
+                        // Add hidden after transition for previous drawer
+                        activeDrawer.addEventListener('transitionend', function handler() {
+                            activeDrawer.classList.add('hidden');
+                            activeDrawer.removeEventListener('transitionend', handler);
+                        }, { once: true }); // Use { once: true } to automatically remove listener
+                    }
+
+                    // Show the target drawer
+                    targetDrawer.classList.remove('hidden'); // Ensure it's not hidden
+                    targetDrawer.setAttribute('aria-hidden', 'false');
+                    setTimeout(() => { // Small delay to ensure reflow before transition
+                        targetDrawer.classList.add('is-open');
+                    }, 10);
+
+                    // Show the overlay
+                    overlay.classList.remove('hidden');
+                    overlay.setAttribute('aria-hidden', 'false');
+                    setTimeout(() => { // Small delay for overlay transition
+                        overlay.classList.add('is-visible');
+                    }, 10);
+
+                    activeDrawer = targetDrawer;
+                }
+            };
+
+            /**
+             * Closes the currently open drawer.
+             */
+            const closeDrawer = () => {
+                if (activeDrawer) {
+                    const drawerToHide = activeDrawer; // Store reference to the drawer being closed
+                    drawerToHide.classList.remove('is-open');
+                    drawerToHide.setAttribute('aria-hidden', 'true');
+                    // Add 'hidden' class after the transition completes
+                    drawerToHide.addEventListener('transitionend', function handler() {
+                        drawerToHide.classList.add('hidden');
+                        drawerToHide.removeEventListener('transitionend', handler);
+                        activeDrawer = null; // Set activeDrawer to null ONLY after transition is done
+                    }, { once: true });
+                }
+
+                // Hide the overlay
+                overlay.classList.remove('is-visible');
+                overlay.setAttribute('aria-hidden', 'true');
+                overlay.addEventListener('transitionend', function handler() {
+                    overlay.classList.add('hidden');
+                    overlay.removeEventListener('transitionend', handler);
+                }, { once: true });
+            };
+
+            // Add click event listeners to navigation links to open drawers
+            navLinks.forEach(link => {
+                link.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const drawer = event.target.dataset.drawer;
+                    if (drawer) {
+                        openDrawer(drawer);
+                    }
+                });
+            });
+
+            // Add click event listeners to close buttons inside drawers
+            closeDrawerBtns.forEach(button => {
+                button.addEventListener('click', closeDrawer);
+            });
+
+            // Add click event listener to the overlay to close the drawer
+            overlay.addEventListener('click', closeDrawer);
+
+            // Gemini API Integration Logic
+            generateRecipeBtn.addEventListener('click', async () => {
+                const meatType = meatTypeInput.value.trim();
+                const flavorProfile = flavorProfileInput.value.trim();
+
+                if (!meatType || !flavorProfile) {
+                    errorMessage.textContent = "Please enter both meat type and flavor profile.";
+                    errorMessage.classList.remove('hidden');
+                    recipeOutput.classList.add('hidden');
+                    return;
+                } else {
+                    errorMessage.classList.add('hidden');
+                }
+
+                // Show loading indicator
+                buttonText.textContent = 'Generating...';
+                loadingSpinner.classList.remove('hidden');
+                generateRecipeBtn.disabled = true;
+                recipeOutput.classList.add('hidden'); // Hide previous output
+
+                try {
+                    let chatHistory = [];
+                    const prompt = `Generate a unique barbecue recipe for ${meatType} with a ${flavorProfile} flavor profile. Include ingredients for a rub/marinade, a brief cooking method (e.g., smoking temperature and time), and a simple sauce idea. Format the response clearly with headings for each section (e.g., "Ingredients:", "Cooking Method:", "Sauce Idea:").`;
+                    chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will provide this at runtime
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`);
+                    }
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        recipeOutput.textContent = text;
+                        recipeOutput.classList.remove('hidden');
+                    } else {
+                        errorMessage.textContent = "Could not generate a recipe. Please try a different request.";
+                        errorMessage.classList.remove('hidden');
+                        console.error("Unexpected API response structure:", result);
+                    }
+                } catch (error) {
+                    errorMessage.textContent = "Failed to generate recipe. Please check your input or try again later.";
+                    errorMessage.classList.remove('hidden');
+                    console.error("Error generating recipe:", error);
+                } finally {
+                    // Hide loading indicator
+                    buttonText.textContent = 'Generate Recipe';
+                    loadingSpinner.classList.add('hidden');
+                    generateRecipeBtn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
